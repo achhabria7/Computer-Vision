@@ -1,0 +1,374 @@
+<html>
+<head>
+<title>Computer Vision Project</title>
+<link href='http://fonts.googleapis.com/css?family=Nunito:300|Crimson+Text|Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" title="Default" href="styles/github.css">
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>  
+
+<link rel="stylesheet" href="highlighting/styles/default.css">
+<script src="highlighting/highlight.pack.js"></script>
+
+<style type="text/css">
+body {
+	margin: 0px;
+	width: 100%;
+	font-family: 'Crimson Text', serif;
+	font-size: 20px;
+	background: #fcfcfc;
+}
+h1 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 28px;
+	margin: 25px 0px 0px 0px;
+	text-transform: lowercase;
+
+}
+
+h2 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 32px;
+	margin: 15px 0px 35px 0px;
+	color: #333;	
+	word-spacing: 3px;
+}
+
+h3 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 26px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+h4 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 22px;
+	margin: 10px 0px 10px 0px;
+	color: #333;
+	word-spacing: 2px;
+}
+
+h5 {
+	font-family: 'Nunito', sans-serif;
+	font-weight: normal;
+	font-size: 18px;
+	margin: 10px 0px 10px 0px;
+	color: #111;
+	word-spacing: 2px;
+}
+
+p, li {
+	color: #444;
+}
+
+a {
+	color: #DE3737;
+}
+
+.container {
+	margin: 0px auto 0px auto;
+	width: 960px;
+}
+
+#header {
+	background: #333;
+	width: 100%;
+}
+
+#headersub {
+	color: #ccc;
+	width: 960px;
+	margin: 0px auto 0px auto;
+	padding: 20px 0px 20px 0px;
+}
+
+.chart {
+	width: 480px;
+}
+.lol {
+	font-size: 16px;
+	color: #888;
+	font-style: italic;
+}
+.sep {
+	height: 1px;
+	width: 100%;
+	background: #999;
+	margin: 20px 0px 20px 0px;
+}
+.footer{
+	font-size: 16px;
+}
+.latex {
+	width: 100%;
+}
+
+.latex img {
+	display: block;
+	margin: 0px auto 0px auto;
+}
+
+pre {
+	font-family: 'Droid Sans Mono';
+	font-size: 14px;
+}
+
+td img {
+  vertical-align: middle;
+}
+
+#contents a {
+}
+
+sub {
+    vertical-align: sub;
+    font-size: smaller;
+}
+
+figcaption { 
+    display: block;
+}
+
+</style>
+<script type="text/javascript">
+    hljs.initHighlightingOnLoad();
+</script>
+</head>
+<body>
+<div id="header" >
+<div id="headersub">
+<h1><span style="color: #DE3737">Anmol Chhabria</span></h1>
+</div>
+</div>
+<div class="container">
+
+<h2>Project 1: Image Filtering and Hybrid Images</h2>
+
+<p> In this project, we used Image Filtering to create Hybrid Images. This report explains the process to implement an image filter along with its results as well as the process to create hybrid images with some examples. </p>
+
+<div style="float: center; padding: 20px">
+<img src="cat/large_blur_image.jpg" />
+<p style="font-size: 20px"> Example of a blurred image </p>
+</div>
+
+<div style="clear:both">
+<h3>Image Filtering</h3>
+
+<p> Image filtering is the process of modifying an image to emphasize certain features. Some possible results of an image filter include blurring, sharpening, saturation. In this assignment, we utilize the Gaussian filter. The Gaussian filter is a filter that is used to smoothen images. The Gaussian filter will result in higher blurring when the standard deviation of the filter is higher. The filter weights central pixels higher than the neighboring pixels. The Gaussian filter utilized in this project has a free parameter, the cutoff frequency, that was tuned. As mentioned in the project description, the cutoff frequency represents how much high frequency to remove from the image and how much low frequency to leave in the image. </p>
+
+<p> The input for the algorithm is the original image <i>I<sub>i</sub></i>, and the output will be referred to as the filtered image <i>I<sub>o</sub></i>. The filtered image is obtained using an operation called convolution. Convolution calculates the value for a pixel <i>(x<sub>1</sub>, y<sub>1</sub>)</i> of <i>I<sub>o</sub></i> using a filter. The filter <i>F<sub>1</sub></i>is a <i>k x k</i> matrix that will be used for the convolution operation. <i>M<sub>1</sub></i> is the <i>k x k</i> matrix within <i>I<sub>i</sub></i> with the pixel <i>(x<sub>1</sub>, y<sub>1</sub>)</i> as the center. The dot product of <i>F<sub>1</sub></i> and <i>M<sub>1</sub></i> is the value for the pixel <i>(x<sub>1</sub>, y<sub>1</sub>)</i> in the output image <i>I<sub>o</sub></i>. </p>
+
+<p> The filter that was implemented supports gray and RGB images. The filter iterates over the pixels in each one of the R, G, B layers. </p>
+
+<p> In order to ensure that pixels on the edge can be appropriately filtered with the matrix <i>M<sub>1</sub></i>, it is necessary to create a padded image that has additional pixels around the edges. In this filter, the image was padded by reflecting the edges. </p>
+
+<h3>Code</h3>
+<p> Below is the code that was used to create the filter.</p>
+
+<pre><code>
+
+def my_imfilter(image, filter):
+  filtered_image = np.zeros_like(image)
+  filter_xcoord = int((filter.shape[0] - 1)/2)
+  filter_ycoord = int((filter.shape[1] - 1)/2)
+
+  padded_input = np.pad(image, [(filter_xcoord, filter_xcoord), (filter_ycoord,filter_ycoord), (0, 0)], 'reflect')
+  
+  for layer in range(image.shape[2]):
+    for row in range(image.shape[0]):
+      for col in range(image.shape[1]):
+        x = padded_input[row:row + filter.shape[0], col:col+filter.shape[1], layer]
+        filtered_image[row, col, layer] = np.sum(np.multiply(filter, x))
+
+</code></pre>
+
+<h3>Filtered Images</h3>
+
+<p> Below are images that resulted from the Identity, Small Blur, Large Blur, Oriented filter (Sobel operator), and the High pass filter (discrete Laplacian), and High Pass Alternative.
+
+
+<table border=1>
+<tr>
+<td>
+<img src="dog/identity_image.jpg" width="25%"/>
+<img src="dog/blur_image.jpg"  width="25%"/>
+<img src="dog/large_blur_image.jpg" width="25%"/>
+</td>
+</tr>
+<tr>
+<td>
+<p> Identity Filter, Small Blur Filter, Large Blur Filter </p>
+</td>
+</tr>
+</table>
+
+<table border=1>
+<tr>
+<td>
+<img src="dog/sobel_image.jpg" width="30%"/>
+<img src="dog/high_pass_image.jpg"  width="30%"/>
+<img src="dog/laplacian_image.jpg" width="30%"/>
+</td>
+</tr>
+<tr>
+<td>
+<p> Oriented (Sobel Operator) Filter, Discrete Laplacian Filter, High Pass Filter </p>
+</td>
+</tr>
+</table>
+
+<div style="clear:both" >
+
+<h3>Hybrid Images</h3>
+
+<p>Hybrid Images can be perceived differently depending on the distance that they are viewed from. A hybrid image is composed of a low-frequency image and a high-frequency image. When you view the hybrid image from a greater distance you will see the low-frequency image. When you view the hybrid image from a shorter distance you will see the high-frequency image.</p>
+
+<p>The Gaussian filter is a low-pass filter, so applying the filter results in a low-frequency image. To obtain the high-frequency image, we calculate the low-frequencies of the image and then subtract them from the original image.</p>
+
+<p>Once the low-frequency image and the high-frequency image were added, the pixel values were clipped with a minimum and maximum value. Clipping is necessary to ensure that all pixel values remain within the [0, 1] bounds.</p>
+
+<pre><code>
+def create_hybrid_image(image1, image2, filter):
+	low_frequencies = my_imfilter(image1, filter)
+	high_frequencies = image2 - my_imfilter(image2, filter)
+
+	hybrid_image = low_frequencies + (high_frequencies)
+	hybrid_image = np.clip(hybrid_image, 0, 1)
+
+</code></pre>
+
+<h3>Hybrid Image Examples</h3>
+
+<p> Below are examples of Hybrid Images. For each one of the images, the cutoff frequency parameter was tuned. This consisted of trying multiple cutoff frequencies [1, 10] before finding the best cutoff to create a hybrid image. </p>
+
+<p> For the Dog - Cat example the cutoff frequency used was 8. </p>
+
+<table border=1>
+<tr>
+<td>
+<img src="dog_cat/low_frequencies.jpg" width="24%"/>
+<img src="dog_cat/high_frequencies.jpg"  width="24%"/>
+<img src="dog_cat/hybrid_image.jpg" width="24%"/>
+<img src="dog_cat/hybrid_image_scales.jpg" width="24%"/>
+</td>
+</tr>
+<tr>
+<td>
+<p> Low Frequencies, High Frequencies, Hybrid Image, Hybrid Image Scales </p>
+</td>
+</tr>
+</table>
+
+<p> For the Bird - Plane example the cutoff frequency used was 5. </p>
+
+<table border=1>
+<tr>
+<td>
+<img src="bird_plane/low_frequencies.jpg" width="24%"/>
+<img src="bird_plane/high_frequencies.jpg"  width="24%"/>
+<img src="bird_plane/hybrid_image.jpg" width="24%"/>
+<img src="bird_plane/hybrid_image_scales.jpg" width="24%"/>
+</td>
+</tr>
+<tr>
+<td>
+<p> Low Frequencies, High Frequencies, Hybrid Image, Hybrid Image Scales </p>
+</td>
+</tr>
+</table>
+
+<p> For the Marilyn Monroe - Albert Einstein example the cutoff frequency used was 3. </p>
+
+<table border=1>
+<tr>
+<td>
+<img src="marilyn_einstein/low_frequencies.jpg" width="24%"/>
+<img src="marilyn_einstein/high_frequencies.jpg"  width="24%"/>
+<img src="marilyn_einstein/hybrid_image.jpg" width="24%"/>
+<img src="marilyn_einstein/hybrid_image_scales.jpg" width="24%"/>
+</td>
+</tr>
+<tr>
+<td>
+<p> Low Frequencies, High Frequencies, Hybrid Image, Hybrid Image Scales </p>
+</td>
+</tr>
+</table>
+
+<p> For the Fish - Submarine example the cutoff frequency used was 6. </p>
+
+<table border=1>
+<tr>
+<td>
+<img src="fish_submarine/low_frequencies.jpg" width="24%"/>
+<img src="fish_submarine/high_frequencies.jpg"  width="24%"/>
+<img src="fish_submarine/hybrid_image.jpg" width="24%"/>
+<img src="fish_submarine/hybrid_image_scales.jpg" width="24%"/>
+</td>
+</tr>
+<tr>
+<td>
+<p> Low Frequencies, High Frequencies, Hybrid Image, Hybrid Image Scales </p>
+</td>
+</tr>
+</table>
+
+<p> For the Bicycle - Motorcycle example the cutoff frequencies used for each image were different. This pair of images was slightly more difficult to tune, since having the same cutoff frequency for both did not result in the best hybrid image. The cutoff frequency used for the Bicyle image was 8, while the cutoff frequency used for the motorcycle was 4. </p>
+
+<table border=1>
+<tr>
+<td>
+<img src="bicycle_motorcycle/low_frequencies.jpg" width="24%"/>
+<img src="bicycle_motorcycle/high_frequencies.jpg"  width="24%"/>
+<img src="bicycle_motorcycle/hybrid_image.jpg" width="24%"/>
+<img src="bicycle_motorcycle/hybrid_image_scales.jpg" width="24%"/>
+</td>
+</tr>
+<tr>
+<td>
+<p> Low Frequencies, High Frequencies, Hybrid Image, Hybrid Image Scales </p>
+</td>
+</tr>
+</table>
+
+<p> Below is the code that was used to create low frequency cutoff and the high frequency cutoff.</p>
+
+<pre><code>
+
+def create_hybrid_image(image1, image2, low_frequency_filter, high_frequency_filter):
+  low_frequencies = my_imfilter(image1, low_frequency_filter)
+  high_frequencies = image2 - my_imfilter(image2, high_frequency_filter)
+
+  hybrid_image = low_frequencies + (high_frequencies)
+  hybrid_image = np.clip(hybrid_image, 0, 1)
+
+</code></pre>
+
+<pre><code>
+
+low_frequency_cutoff = 8
+low_frequency_filter = cv2.getGaussianKernel(ksize=low_frequency_cutoff*4+1,
+                               sigma=low_frequency_cutoff)
+low_frequency_filter = np.dot(low_frequency_filter, low_frequency_filter.T)
+
+high_frequency_cutoff = 4
+high_frequency_filter = cv2.getGaussianKernel(ksize=high_frequency_cutoff*4+1,
+                               sigma=high_frequency_cutoff)
+high_frequency_filter = np.dot(high_frequency_filter, high_frequency_filter.T)
+
+</code></pre>
+
+<pre><code>
+
+low_frequencies, high_frequencies, hybrid_image = create_hybrid_image(image1, image2, low_frequency_filter, high_frequency_filter)
+vis = vis_hybrid_image(hybrid_image)
+
+</code></pre>
+
+</p>
+</div>
+</body>
+</html>
